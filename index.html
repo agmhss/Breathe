@@ -3,44 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pygmalion's Gaze - Groq Vision + 3D View</title>
+    <title>Pygmalion's Touch - OpenAI Image Gen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
         
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: #e2e8f0;
-        }
-        
-        h1, h2, h3 {
-            font-family: 'Cinzel', serif;
-        }
-
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-        }
-
-        .loading-spinner {
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #38bdf8;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* 3D helpers */
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        h1, h2, h3 { font-family: 'Cinzel', serif; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(148, 163, 184, 0.1); }
+        .loading-spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: #38bdf8; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .perspective-1200 { perspective: 1200px; }
         .preserve-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
@@ -50,113 +23,75 @@
 
     <div class="max-w-5xl w-full space-y-10">
 
-        <!-- API Key Input -->
+        <!-- OpenAI API Key Input -->
         <div class="glass-panel rounded-2xl p-6 shadow-2xl">
-            <label class="block text-sm font-medium text-slate-300 mb-3">
-                Groq API Key (required)
-            </label>
+            <label class="block text-sm font-medium text-slate-300 mb-3">OpenAI API Key (sk-...)</label>
             <div class="flex gap-3">
-                <input 
-                    type="password" 
-                    id="groq-api-key" 
-                    placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                    class="flex-1 bg-slate-900/60 border border-slate-600 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-500 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
-                    autocomplete="off"
-                >
-                <button id="toggle-key-visibility" class="px-4 bg-slate-700 hover:bg-slate-600 rounded-xl text-slate-300">
-                    <i class="fas fa-eye"></i>
-                </button>
+                <input type="password" id="openai-api-key" placeholder="sk-..." class="flex-1 bg-slate-900/60 border border-slate-600 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-500 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none" autocomplete="off">
+                <button id="toggle-key" class="px-4 bg-slate-700 hover:bg-slate-600 rounded-xl text-slate-300"><i class="fas fa-eye"></i></button>
             </div>
-            <p class="text-xs text-slate-500 mt-2">
-                Get your key: <a href="https://console.groq.com/keys" target="_blank" class="text-amber-400 hover:underline">console.groq.com/keys</a>
-            </p>
+            <p class="text-xs text-slate-500 mt-2">Get key: <a href="https://platform.openai.com/api-keys" target="_blank" class="text-amber-400 hover:underline">platform.openai.com/api-keys</a></p>
         </div>
 
-        <!-- Header -->
         <header class="text-center space-y-2">
-            <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-500 drop-shadow-sm">
-                Pygmalion's Gaze
-            </h1>
-            <p class="text-slate-400 text-lg">See how this statue might look if brought to life</p>
-            <div class="flex items-center justify-center gap-2 mt-3">
-                <span class="px-3 py-1 bg-amber-900/40 text-amber-200 text-sm rounded border border-amber-800/50">Groq Vision + Interactive View</span>
+            <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-500 drop-shadow-sm">Pygmalion's Touch</h1>
+            <p class="text-slate-400 text-lg">Transform stone into living flesh with OpenAI</p>
+            <div class="flex justify-center gap-2 mt-3">
+                <span class="px-3 py-1 bg-amber-900/40 text-amber-200 text-sm rounded border border-amber-800/50">Model: gpt-image-1.5</span>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            <!-- Left: Input -->
+            <!-- Input Column -->
             <div class="glass-panel rounded-2xl p-6 shadow-2xl flex flex-col gap-6">
-                <!-- Upload -->
                 <div class="space-y-2">
-                    <label class="block text-sm font-medium text-slate-300">1. Upload Statue Image</label>
+                    <label class="block text-sm font-medium text-slate-300">1. Upload Stone Statue</label>
                     <div id="drop-zone" class="border-2 border-dashed border-slate-600 rounded-xl p-8 text-center cursor-pointer hover:border-amber-400 hover:bg-slate-800/50 transition-all duration-300 relative overflow-hidden group">
                         <input type="file" id="image-upload" accept="image/*" class="hidden">
                         <div id="upload-placeholder" class="flex flex-col items-center space-y-3">
-                            <div class="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <i class="fas fa-cloud-upload-alt text-2xl text-slate-300"></i>
-                            </div>
+                            <div class="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-cloud-upload-alt text-2xl text-slate-300"></i></div>
                             <p class="text-slate-400 text-sm">Click or drag & drop</p>
                         </div>
                         <img id="preview-image" class="hidden absolute inset-0 w-full h-full object-contain bg-black/50 backdrop-blur-sm p-2" alt="Preview">
-                        <button id="remove-image" class="hidden absolute top-2 right-2 bg-red-500/80 hover:bg-red-600 text-white p-1 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        <button id="remove-image" class="hidden absolute top-2 right-2 bg-red-500/80 hover:bg-red-600 text-white p-1 rounded-full w-8 h-8 flex items-center justify-center transition-colors"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
 
-                <!-- Prompt -->
                 <div class="space-y-2">
-                    <label class="block text-sm font-medium text-slate-300">2. Your Instruction</label>
-                    <textarea id="prompt-input" rows="4" class="w-full bg-slate-900/50 border border-slate-600 rounded-xl p-4 text-sm text-slate-200 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none resize-none placeholder-slate-600 transition-all" placeholder="Ask the model...">Describe this statue as if it came to life: hyper-realistic human skin, pores, subtle moisture, natural skin tones, lifelike eyes, warm cinematic lighting. Keep exact pose, features, clothing and expression.</textarea>
-                    <p class="text-xs text-slate-500 text-right">Tip: Ask for vivid visual details</p>
+                    <label class="block text-sm font-medium text-slate-300">2. Describe the Living Version</label>
+                    <textarea id="prompt-input" rows="5" class="w-full bg-slate-900/50 border border-slate-600 rounded-xl p-4 text-sm text-slate-200 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none resize-none placeholder-slate-600" placeholder="A hyper-realistic living human version...">Transform this ancient stone statue into a living, breathing person. Hyper-realistic skin with pores, subtle moisture, natural warm tones, lifelike eyes with reflection, soft cinematic lighting, detailed facial expression matching the original, keep exact pose, clothing details and features but make it photorealistic human flesh instead of marble. 8k quality, dramatic yet natural.</textarea>
                 </div>
 
-                <button id="generate-btn" disabled class="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 group">
-                    <span>Ask the Oracle</span>
-                    <i class="fas fa-eye group-hover:rotate-12 transition-transform"></i>
-                </button>
+                <button id="generate-btn" disabled class="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"><span>Breathe Life</span><i class="fas fa-magic"></i></button>
             </div>
 
-            <!-- Right: Output with 3D rotation -->
+            <!-- Output Column -->
             <div class="glass-panel rounded-2xl p-6 shadow-2xl flex flex-col h-[620px] lg:h-auto">
                 <div class="flex justify-between items-center mb-4">
-                    <label class="block text-sm font-medium text-slate-300">3. Living Description & View</label>
-                    <div class="flex items-center gap-3">
-                        <button id="rotate-reset" class="hidden px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded transition-colors">
-                            Reset View
-                        </button>
-                        <div id="status-badge" class="hidden px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">
-                            Ready
-                        </div>
+                    <label class="block text-sm font-medium text-slate-300">3. The Living Result</label>
+                    <div class="flex gap-3">
+                        <button id="rotate-reset" class="hidden px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded">Reset View</button>
+                        <div id="status-badge" class="hidden px-3 py-1 rounded-full text-xs bg-slate-700 text-slate-300">Ready</div>
                     </div>
                 </div>
 
-                <div id="output-container" class="flex-1 bg-black/40 rounded-xl border border-slate-700/50 overflow-hidden relative group perspective-1200">
-
+                <div id="output-container" class="flex-1 bg-black/40 rounded-xl border border-slate-700/50 overflow-hidden relative perspective-1200">
                     <div id="empty-state" class="text-center py-20 opacity-40 flex flex-col items-center justify-center h-full">
-                        <i class="fas fa-eye text-6xl mb-4 text-slate-600"></i>
-                        <p class="text-sm font-light">AI description + interactive view will appear here</p>
+                        <i class="fas fa-image text-6xl mb-4 text-slate-600"></i>
+                        <p>Generated living version will appear here</p>
                     </div>
 
                     <div id="loading-state" class="hidden flex flex-col items-center justify-center h-full space-y-4">
                         <div class="loading-spinner"></div>
-                        <p class="text-sm text-amber-200 animate-pulse">Consulting the oracle...</p>
+                        <p class="text-amber-200 animate-pulse">Animating life...</p>
                     </div>
 
-                    <div id="result-text" class="hidden p-6 prose prose-invert max-w-none overflow-y-auto h-1/2"></div>
-
-                    <div id="result-3d-wrapper" class="hidden w-full h-1/2 flex items-center justify-center preserve-3d">
-                        <img id="result-image" 
-                             class="max-w-[92%] max-h-[92%] object-contain shadow-2xl rounded-xl transform-gpu backface-hidden cursor-grab active:cursor-grabbing"
-                             alt="Living Statue View (drag to rotate)"
-                             src="https://images.unsplash.com/photo-1580130718646-9f694209b207?w=800&auto=format&fit=crop&q=80">
+                    <div id="result-3d-wrapper" class="hidden w-full h-full flex items-center justify-center preserve-3d">
+                        <img id="result-image" class="max-w-[92%] max-h-[92%] object-contain shadow-2xl rounded-xl transform-gpu backface-hidden cursor-grab" alt="Generated Living Statue" src="">
                     </div>
 
                     <div id="result-actions" class="hidden absolute bottom-4 left-0 right-0 flex justify-center gap-4 z-20">
-                        <button id="download-btn" class="px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-semibold rounded-xl shadow-lg flex items-center gap-2 transition-all">
-                            <i class="fas fa-download"></i> Download View
-                        </button>
+                        <button id="download-btn" class="px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-semibold rounded-xl shadow-lg flex items-center gap-2"><i class="fas fa-download"></i> Download</button>
                     </div>
                 </div>
             </div>
@@ -166,254 +101,213 @@
     <!-- Toast -->
     <div id="toast" class="fixed bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-300 bg-red-600/90 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 max-w-md z-50">
         <i class="fas fa-exclamation-circle text-xl"></i>
-        <div class="flex flex-col">
-            <span class="font-bold">Error</span>
-            <span id="toast-message" class="text-sm">Error message here</span>
-        </div>
+        <div><span class="font-bold">Error</span><span id="toast-message" class="text-sm block">Message</span></div>
     </div>
 
     <script>
-        // ─── DOM Elements ────────────────────────────────────────────────
-        const apiKeyInput     = document.getElementById('groq-api-key');
-        const toggleKeyBtn    = document.getElementById('toggle-key-visibility');
-        const dropZone        = document.getElementById('drop-zone');
-        const fileInput       = document.getElementById('image-upload');
-        const previewImage    = document.getElementById('preview-image');
+        const apiKeyInput = document.getElementById('openai-api-key');
+        const toggleBtn = document.getElementById('toggle-key');
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('image-upload');
+        const previewImg = document.getElementById('preview-image');
         const uploadPlaceholder = document.getElementById('upload-placeholder');
-        const removeBtn       = document.getElementById('remove-image');
-        const generateBtn     = document.getElementById('generate-btn');
-        const promptInput     = document.getElementById('prompt-input');
-        
-        const emptyState      = document.getElementById('empty-state');
-        const loadingState    = document.getElementById('loading-state');
-        const resultText      = document.getElementById('result-text');
-        const resultWrapper   = document.getElementById('result-3d-wrapper');
-        const resultImg       = document.getElementById('result-image');
-        const resultActions   = document.getElementById('result-actions');
-        const downloadBtn     = document.getElementById('download-btn');
-        const rotateReset     = document.getElementById('rotate-reset');
-        const statusBadge     = document.getElementById('status-badge');
+        const removeBtn = document.getElementById('remove-image');
+        const generateBtn = document.getElementById('generate-btn');
+        const promptInput = document.getElementById('prompt-input');
+        const emptyState = document.getElementById('empty-state');
+        const loadingState = document.getElementById('loading-state');
+        const resultWrapper = document.getElementById('result-3d-wrapper');
+        const resultImg = document.getElementById('result-image');
+        const resultActions = document.getElementById('result-actions');
+        const downloadBtn = document.getElementById('download-btn');
+        const rotateReset = document.getElementById('rotate-reset');
+        const statusBadge = document.getElementById('status-badge');
 
-        let currentFileBase64 = null;
-        let currentMimeType   = null;
+        let currentFile = null;
+        let isDragging = false, prevX = 0, prevY = 0, rotX = 0, rotY = 0;
 
-        // 3D rotation state
-        let isDragging = false;
-        let previousX = 0;
-        let previousY = 0;
-        let rotX = 0;
-        let rotY = 0;
-
-        // ─── Helpers ─────────────────────────────────────────────────────
-        function checkIfReady() {
+        function checkReady() {
             const key = apiKeyInput.value.trim();
-            const hasKey = key.length > 20 && key.startsWith('gsk_');
-            const hasImage = !!currentFileBase64;
-            generateBtn.disabled = !(hasKey && hasImage);
+            const hasKey = key.startsWith('sk-') && key.length > 30;
+            generateBtn.disabled = !(hasKey && currentFile);
         }
 
         function updateRotation() {
             resultImg.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
         }
 
-        // ─── Event Listeners ─────────────────────────────────────────────
-        apiKeyInput.addEventListener('input', checkIfReady);
-
-        toggleKeyBtn.addEventListener('click', () => {
-            const isPassword = apiKeyInput.type === 'password';
-            apiKeyInput.type = isPassword ? 'text' : 'password';
-            toggleKeyBtn.innerHTML = `<i class="fas fa-eye${isPassword ? '-slash' : ''}"></i>`;
+        toggleBtn.addEventListener('click', () => {
+            const type = apiKeyInput.type === 'password' ? 'text' : 'password';
+            apiKeyInput.type = type;
+            toggleBtn.innerHTML = `<i class="fas fa-eye${type === 'password' ? '' : '-slash'}"></i>`;
         });
+
+        apiKeyInput.addEventListener('input', checkReady);
 
         dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('border-amber-400','bg-slate-800/80'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-amber-400','bg-slate-800/80'));
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('border-amber-400', 'bg-slate-800/50'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-amber-400', 'bg-slate-800/50'));
         dropZone.addEventListener('drop', e => {
             e.preventDefault();
-            dropZone.classList.remove('border-amber-400','bg-slate-800/80');
-            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+            dropZone.classList.remove('border-amber-400', 'bg-slate-800/50');
+            handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+        removeBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            currentFile = null;
+            fileInput.value = '';
+            previewImg.src = '';
+            previewImg.classList.add('hidden');
+            uploadPlaceholder.classList.remove('hidden');
+            removeBtn.classList.add('hidden');
+            checkReady();
         });
 
-        fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
-
-        removeBtn.addEventListener('click', e => { e.stopPropagation(); resetUpload(); });
-
-        generateBtn.addEventListener('click', generateDescription);
-
-        // 3D drag (mouse)
-        resultWrapper.addEventListener('mousedown', e => {
-            if (e.button !== 0) return;
-            isDragging = true;
-            previousX = e.clientX;
-            previousY = e.clientY;
-            resultWrapper.style.cursor = 'grabbing';
-            e.preventDefault();
-        });
-
-        window.addEventListener('mousemove', e => {
-            if (!isDragging) return;
-            const deltaX = e.clientX - previousX;
-            const deltaY = e.clientY - previousY;
-            rotY += deltaX * 0.7;
-            rotX -= deltaY * 0.7;
-            rotX = Math.max(-80, Math.min(80, rotX));
-            updateRotation();
-            previousX = e.clientX;
-            previousY = e.clientY;
-        });
-
-        window.addEventListener('mouseup',   () => { isDragging = false; resultWrapper.style.cursor = 'grab'; });
-        window.addEventListener('mouseleave', () => { isDragging = false; resultWrapper.style.cursor = ''; });
-
-        // Touch support
-        resultWrapper.addEventListener('touchstart', e => {
-            if (e.touches.length !== 1) return;
-            isDragging = true;
-            previousX = e.touches[0].clientX;
-            previousY = e.touches[0].clientY;
-            e.preventDefault();
-        });
-
-        resultWrapper.addEventListener('touchmove', e => {
-            if (!isDragging || e.touches.length !== 1) return;
-            const t = e.touches[0];
-            const dx = t.clientX - previousX;
-            const dy = t.clientY - previousY;
-            rotY += dx * 0.9;
-            rotX -= dy * 0.9;
-            rotX = Math.max(-80, Math.min(80, rotX));
-            updateRotation();
-            previousX = t.clientX;
-            previousY = t.clientY;
-            e.preventDefault();
-        });
-
-        resultWrapper.addEventListener('touchend', () => isDragging = false);
-
-        rotateReset.addEventListener('click', () => {
-            rotX = 0; rotY = 0; updateRotation();
-        });
-
-        downloadBtn.addEventListener('click', () => {
-            const link = document.createElement('a');
-            link.download = 'living-statue-view.jpg';
-            link.href = resultImg.src;
-            link.click();
-        });
-
-        // ─── Core Logic ──────────────────────────────────────────────────
         function handleFile(file) {
-            if (!file.type.startsWith('image/')) return showToast('Please upload an image file.');
-            if (file.size > 6 * 1024 * 1024) return showToast('Image too large (max ~6MB).');
-
+            if (!file || !file.type.startsWith('image/')) return showToast('Please upload an image file.');
+            if (file.size > 8 * 1024 * 1024) return showToast('Image too large (max ~8MB).');
+            currentFile = file;
             const reader = new FileReader();
             reader.onload = e => {
-                currentFileBase64 = e.target.result.split(',')[1];
-                currentMimeType   = file.type;
-                previewImage.src = e.target.result;
-                previewImage.classList.remove('hidden');
+                previewImg.src = e.target.result;
+                previewImg.classList.remove('hidden');
                 uploadPlaceholder.classList.add('hidden');
                 removeBtn.classList.remove('hidden');
-                checkIfReady();
+                checkReady();
             };
             reader.readAsDataURL(file);
         }
 
-        function resetUpload() {
-            currentFileBase64 = null;
-            currentMimeType = null;
-            fileInput.value = '';
-            previewImage.src = '';
-            previewImage.classList.add('hidden');
-            uploadPlaceholder.classList.remove('hidden');
-            removeBtn.classList.add('hidden');
-            checkIfReady();
-        }
-
-        async function generateDescription() {
-            const apiKey = apiKeyInput.value.trim();
-            if (!apiKey) return showToast("Please enter your Groq API key.");
-            if (!currentFileBase64) return;
+        generateBtn.addEventListener('click', async () => {
+            const key = apiKeyInput.value.trim();
+            if (!key.startsWith('sk-')) return showToast('Invalid OpenAI API key format.');
+            if (!currentFile) return;
 
             setLoading(true);
-            const userPrompt = promptInput.value.trim() || "Describe this statue as if it came to life in hyper-realistic detail.";
+            const prompt = promptInput.value.trim();
+            if (!prompt) return showToast('Please enter a description.');
 
             try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
+                const formData = new FormData();
+                formData.append('file', currentFile);
+                formData.append('purpose', 'vision'); // for base64 if needed, but we'll use direct prompt
+
+                // For simplicity: text-to-image with detailed prompt (add statue description if you want vision first)
+                const res = await fetch('https://api.openai.com/v1/images/generations', {
+                    method: 'POST',
                     headers: {
-                        "Authorization": `Bearer ${apiKey}`,
-                        "Content-Type": "application/json"
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: "meta-llama/llama-4-scout-17b-16e-instruct", // or any current Groq vision model in Jan 2026
-                        messages: [{
-                            role: "user",
-                            content: [
-                                { type: "text", text: userPrompt },
-                                { type: "image_url", image_url: { url: `data:${currentMimeType};base64,${currentFileBase64}` } }
-                            ]
-                        }],
-                        temperature: 0.75,
-                        max_tokens: 1400
+                        model: 'gpt-image-1.5',
+                        prompt: prompt,
+                        n: 1,
+                        size: '1024x1024',
+                        quality: 'standard', // or 'hd' for better but more expensive
+                        response_format: 'b64_json' // get base64 directly
                     })
                 });
 
                 if (!res.ok) {
-                    const err = await res.json().catch(() => ({}));
-                    throw new Error(err.error?.message || `Groq error ${res.status}`);
+                    const err = await res.json();
+                    throw new Error(err.error?.message || `HTTP ${res.status}`);
                 }
 
                 const data = await res.json();
-                const text = data.choices?.[0]?.message?.content || "";
+                const b64 = data.data[0].b64_json;
+                const imgSrc = `data:image/png;base64,${b64}`;
 
-                if (!text.trim()) throw new Error("Empty response");
-
-                resultText.innerHTML = marked.parse(text);
-                resultText.classList.remove('hidden');
+                resultImg.src = imgSrc;
                 resultWrapper.classList.remove('hidden');
                 resultActions.classList.remove('hidden');
                 rotateReset.classList.remove('hidden');
                 emptyState.classList.add('hidden');
                 loadingState.classList.add('hidden');
 
-                statusBadge.textContent = "Complete";
-                statusBadge.className = "px-3 py-1 rounded-full text-xs font-medium bg-green-900/50 text-green-300 border border-green-700/50";
+                statusBadge.textContent = 'Complete';
+                statusBadge.className = 'px-3 py-1 rounded-full text-xs font-medium bg-green-900/50 text-green-300 border border-green-700/50';
+
+                rotX = rotY = 0;
+                updateRotation();
 
             } catch (err) {
                 console.error(err);
-                showToast(err.message || "Failed to get response from Groq");
+                showToast(err.message.includes('insufficient_quota') ? 'OpenAI quota exceeded – check billing' : err.message || 'Generation failed');
             } finally {
                 setLoading(false);
             }
-        }
+        });
 
-        function setLoading(isLoading) {
-            generateBtn.disabled = isLoading;
-            if (isLoading) {
-                emptyState.classList.add('hidden');
-                resultText.classList.add('hidden');
-                resultWrapper.classList.add('hidden');
-                resultActions.classList.add('hidden');
-                rotateReset.classList.add('hidden');
-                loadingState.classList.remove('hidden');
-                statusBadge.classList.remove('hidden');
-                statusBadge.textContent = "Thinking...";
-                statusBadge.className = "px-3 py-1 rounded-full text-xs font-medium bg-amber-900/50 text-amber-200 border border-amber-700/50 animate-pulse";
+        // 3D drag handlers (same as before)
+        resultWrapper.addEventListener('mousedown', e => {
+            if (e.button !== 0) return;
+            isDragging = true;
+            prevX = e.clientX; prevY = e.clientY;
+            resultWrapper.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+        window.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            rotY += (e.clientX - prevX) * 0.7;
+            rotX -= (e.clientY - prevY) * 0.7;
+            rotX = Math.max(-80, Math.min(80, rotX));
+            updateRotation();
+            prevX = e.clientX; prevY = e.clientY;
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; resultWrapper.style.cursor = 'grab'; });
+        window.addEventListener('mouseleave', () => isDragging = false);
+
+        // Touch
+        resultWrapper.addEventListener('touchstart', e => {
+            if (e.touches.length !== 1) return;
+            isDragging = true;
+            prevX = e.touches[0].clientX;
+            prevY = e.touches[0].clientY;
+        });
+        resultWrapper.addEventListener('touchmove', e => {
+            if (!isDragging || e.touches.length !== 1) return;
+            const t = e.touches[0];
+            rotY += (t.clientX - prevX) * 0.9;
+            rotX -= (t.clientY - prevY) * 0.9;
+            rotX = Math.max(-80, Math.min(80, rotX));
+            updateRotation();
+            prevX = t.clientX; prevY = t.clientY;
+            e.preventDefault();
+        });
+        resultWrapper.addEventListener('touchend', () => isDragging = false);
+
+        rotateReset.addEventListener('click', () => { rotX = rotY = 0; updateRotation(); });
+
+        downloadBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'living-statue.png';
+            link.href = resultImg.src;
+            link.click();
+        });
+
+        function setLoading(is) {
+            generateBtn.disabled = is;
+            emptyState.classList.toggle('hidden', !is && !resultWrapper.classList.contains('hidden'));
+            loadingState.classList.toggle('hidden', !is);
+            statusBadge.classList.toggle('hidden', !is);
+            if (is) {
+                statusBadge.textContent = 'Generating...';
+                statusBadge.className = 'px-3 py-1 rounded-full text-xs font-medium bg-amber-900/50 text-amber-200 border border-amber-700/50 animate-pulse';
             }
         }
 
         function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-message').textContent = msg.substring(0, 140) + (msg.length > 140 ? "..." : "");
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 5000);
+            document.getElementById('toast-message').textContent = msg;
+            const t = document.getElementById('toast');
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 5000);
         }
 
-        // Init
-        checkIfReady();
         resultWrapper.style.cursor = 'grab';
-
+        checkReady();
     </script>
 </body>
 </html>

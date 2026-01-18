@@ -346,7 +346,7 @@
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        model: "llama-3.2-90b-vision-instruct", // or any current Groq vision model in Jan 2026
+                        model: "meta-llama/llama-4-scout-17b-16e-instruct", // or any current Groq vision model in Jan 2026
                         messages: [{
                             role: "user",
                             content: [
@@ -413,6 +413,20 @@
         // Init
         checkIfReady();
         resultWrapper.style.cursor = 'grab';
+        
+        async function logAvailableModels() {
+    const key = apiKeyInput.value.trim();
+    if (!key) return console.log("Enter API key first");
+    try {
+        const res = await fetch("https://api.groq.com/openai/v1/models", {
+            headers: { "Authorization": `Bearer ${key}` }
+        });
+        const data = await res.json();
+        console.log("Available Groq models:", data.data.map(m => m.id));
+    } catch (e) { console.error("Models fetch failed:", e); }
+}
+logAvailableModels();  // runs on load if key present
+        
     </script>
 </body>
 </html>

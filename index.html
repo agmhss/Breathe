@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statue to Life Converter (Vision + Description)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.1/markdown-it.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Cinzel', serif;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #38bdf8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-10 px-4 bg-[url('https://images.unsplash.com/photo-1544967082-d9d3fdd0627c?q=80&w=2832&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat bg-fixed bg-blend-overlay bg-slate-900/90">
+
+    <div class="max-w-5xl w-full">
+        <!-- Header -->
+        <header class="text-center mb-10 space-y-2">
+            <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-500 drop-shadow-sm">
+                Pygmalion's Gaze
+            </h1>
+            <p class="text-slate-400 text-lg">Describe in vivid detail how this statue would look alive</p>
+            <div class="flex items-center justify-center gap-2 mt-2">
+                <span class="px-2 py-1 bg-amber-900/40 text-amber-200 text-xs rounded border border-amber-800/50">Model: Llama 4 Maverick (Groq)</span>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Left Column: Input -->
+            <div class="glass-panel rounded-2xl p-6 shadow-2xl flex flex-col gap-6">
+                
+                <!-- Upload Area -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-slate-300">1. Upload Stone Art</label>
+                    <div id="drop-zone" class="border-2 border-dashed border-slate-600 rounded-xl p-8 text-center cursor-pointer hover:border-amber-400 hover:bg-slate-800/50 transition-all duration-300 relative overflow-hidden group">
+                        <input type="file" id="image-upload" accept="image/*" class="hidden">
+                        
+                        <div id="upload-placeholder" class="flex flex-col items-center space-y-3">
+                            <div class="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i class="fas fa-cloud-upload-alt text-2xl text-slate-300"></i>
+                            </div>
+                            <p class="text-slate-400 text-sm">Click or drag & drop your statue image here</p>
+                        </div>
+
+                        <img id="preview-image" class="hidden absolute inset-0 w-full h-full object-contain bg-black/50 backdrop-blur-sm p-2" alt="Preview">
+                        
+                        <button id="remove-image" class="hidden absolute top-2 right-2 bg-red-500/80 hover:bg-red-600 text-white p-1 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Prompt Configuration -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-slate-300">2. Refine the Question</label>
+                    <textarea id="prompt-input" rows="4" class="w-full bg-slate-900/50 border border-slate-600 rounded-xl p-4 text-sm text-slate-200 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none resize-none placeholder-slate-600 transition-all" placeholder="Ask the model...">Describe this ancient statue as if it came to life: hyper-realistic human appearance, skin texture, pores, subtle moisture, natural skin tones, lifelike eyes, warm cinematic lighting. Keep the exact pose, facial features, clothing and expression.</textarea>
+                    <p class="text-xs text-slate-500 text-right">Tip: Ask for detailed visual description</p>
+                </div>
+
+                <!-- Action Button -->
+                <button id="generate-btn" disabled class="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 group">
+                    <span>Ask the Oracle</span>
+                    <i class="fas fa-eye group-hover:rotate-12 transition-transform"></i>
+                </button>
+            </div>
+
+            <!-- Right Column: Output -->
+            <div class="glass-panel rounded-2xl p-6 shadow-2xl flex flex-col h-[600px] lg:h-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <label class="block text-sm font-medium text-slate-300">3. Vivid Description</label>
+                    <div id="status-badge" class="hidden px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">
+                        Ready
+                    </div>
+                </div>
+
+                <div id="output-container" class="flex-1 bg-black/40 rounded-xl border border-slate-700/50 p-6 overflow-y-auto prose prose-invert max-w-none">
+                    <div id="empty-state" class="text-center py-20 opacity-40">
+                        <i class="fas fa-eye text-6xl mb-4 text-slate-600"></i>
+                        <p class="text-sm font-light">AI description will appear here</p>
+                    </div>
+
+                    <div id="loading-state" class="hidden flex flex-col items-center justify-center h-full space-y-4">
+                        <div class="loading-spinner"></div>
+                        <p class="text-sm text-amber-200 animate-pulse">Consulting the oracle...</p>
+                    </div>
+
+                    <div id="result-text" class="hidden prose prose-invert"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-red-500/90 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3 max-w-md z-50">
+        <i class="fas fa-exclamation-circle text-xl"></i>
+        <div class="flex flex-col">
+            <span class="font-bold">Error</span>
+            <span id="toast-message" class="text-sm">Error message here</span>
+        </div>
+    </div>
+
+    <script>
+        // ────────────────────────────────────────────────
+        //  Put your real Groq API key here (never commit it!)
+        // ────────────────────────────────────────────────
+        const GROQ_API_KEY = "";   // ←←← paste your key here
+
+        const MODEL = "llama-4-maverick";   // or "llama-4-scout", check https://console.groq.com/docs/models
+
+        // DOM Elements
+        const dropZone        = document.getElementById('drop-zone');
+        const fileInput       = document.getElementById('image-upload');
+        const previewImage    = document.getElementById('preview-image');
+        const uploadPlaceholder = document.getElementById('upload-placeholder');
+        const removeBtn       = document.getElementById('remove-image');
+        const generateBtn     = document.getElementById('generate-btn');
+        const promptInput     = document.getElementById('prompt-input');
+        
+        const outputContainer = document.getElementById('output-container');
+        const emptyState      = document.getElementById('empty-state');
+        const loadingState    = document.getElementById('loading-state');
+        const resultText      = document.getElementById('result-text');
+        const statusBadge     = document.getElementById('status-badge');
+
+        let currentFileBase64 = null;
+        let currentMimeType   = null;
+
+        // Event Listeners ───────────────────────────────────────
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropZone.classList.add('border-amber-400', 'bg-slate-800/80');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-amber-400', 'bg-slate-800/80');
+        });
+        
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('border-amber-400', 'bg-slate-800/80');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener('change', e => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        removeBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            resetUpload();
+        });
+
+        generateBtn.addEventListener('click', generateDescription);
+
+        // ────────────────────────────────────────────────────────
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showToast('Please upload a valid image file.');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Image size should be less than 5MB.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                currentFileBase64 = e.target.result.split(',')[1];
+                currentMimeType   = file.type;
+                
+                previewImage.src = e.target.result;
+                previewImage.classList.remove('hidden');
+                uploadPlaceholder.classList.add('hidden');
+                removeBtn.classList.remove('hidden');
+                generateBtn.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetUpload() {
+            currentFileBase64 = null;
+            currentMimeType = null;
+            fileInput.value = '';
+            previewImage.src = '';
+            previewImage.classList.add('hidden');
+            uploadPlaceholder.classList.remove('hidden');
+            removeBtn.classList.add('hidden');
+            generateBtn.disabled = true;
+        }
+
+        // ────────────────────────────────────────────────────────
+        async function generateDescription() {
+            if (!GROQ_API_KEY) {
+                showToast("Please add your Groq API key in the code (const GROQ_API_KEY = \"...\")");
+                return;
+            }
+            if (!currentFileBase64) return;
+
+            setLoading(true);
+            const userPrompt = promptInput.value.trim() || "Describe this statue in hyper-realistic living human form.";
+
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${GROQ_API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: MODEL,
+                        messages: [
+                            {
+                                role: "user",
+                                content: [
+                                    { type: "text", text: userPrompt },
+                                    {
+                                        type: "image_url",
+                                        image_url: {
+                                            url: `data:${currentMimeType};base64,${currentFileBase64}`
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 1200
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.error?.message || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const text = data.choices?.[0]?.message?.content || "";
+
+                if (!text) throw new Error("Empty response from model");
+
+                resultText.innerHTML = marked.parse(text);   // using markdown-it
+                resultText.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+                loadingState.classList.add('hidden');
+
+                statusBadge.textContent = "Complete";
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-medium bg-green-900/50 text-green-300 border border-green-700/50";
+
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || "Failed to get description from Groq");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function setLoading(isLoading) {
+            generateBtn.disabled = isLoading;
+            if (isLoading) {
+                emptyState.classList.add('hidden');
+                resultText.classList.add('hidden');
+                loadingState.classList.remove('hidden');
+                statusBadge.classList.remove('hidden');
+                statusBadge.textContent = "Thinking...";
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-medium bg-amber-900/50 text-amber-200 border border-amber-700/50 animate-pulse";
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = msg.substring(0, 100) + (msg.length > 100 ? "..." : "");
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
